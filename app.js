@@ -17,11 +17,23 @@ function getData(url) {
 
 function newsFeed() {
   const newsFeed = getData(NEWS_URL)
+
   store.maxLength = newsFeed.length
 
-  const newsList = []
+  let template = `
+  <div class="container mx-auto p-4">
+    <h1>Hacker News</h1>
+    <ul>
+      {{__news_feed__}}
+    </ul>
+    <div>
+      <a href="#/page/{{__prev_page__}}">이전 페이지</a>
+      <a href="#/page/{{__next_page__}}">다음 페이지</a>
+    </div>
+  </div>
+  `
 
-  newsList.push("<ul>")
+  const newsList = []
   for (
     let i = (store.currentPage - 1) * 10;
     i < store.currentPage * 10;
@@ -35,21 +47,20 @@ function newsFeed() {
   </li>
   `)
   }
-  newsList.push("</ul>")
-  newsList.push(`
-  <div>
-  <a href="#/page/${
+
+  template = template.replace("{{__news_feed__}}", newsList.join(""))
+  template = template.replace(
+    "{{__prev_page__}}",
     store.currentPage > 1 ? store.currentPage - 1 : 1
-  }">이전 페이지</a>
-  <a href="#/page/${
+  )
+  template = template.replace(
+    "{{__next_page__}}",
     Math.ceil(store.maxLength / 10) === store.currentPage
       ? store.currentPage
       : store.currentPage + 1
-  }">다음 페이지</a>
-  </div>
-  `)
+  )
 
-  container.innerHTML = newsList.join("")
+  container.innerHTML = template
 }
 
 function newsDetail() {
