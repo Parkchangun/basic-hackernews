@@ -2,5 +2,10 @@
   "name": "hacker-news-web",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.7.3"
+  },
+  "repository": "https://Parkchangun@github.com/Parkchangun/basic-hackernews.git",
+  "author": "parkchangeon <qkrcksrjs@gmail.com>"
 }
