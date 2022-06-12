@@ -1,30 +1,62 @@
-const ajax = new XMLHttpRequest()
+type Store = {
+  currentPage: number
+  feeds: NewsFeed[]
+}
+
+type News = {
+  id: number
+  time_ago: string
+  title: string
+  url: string
+  user: string
+  content: string
+}
+
+type NewsFeed = News & {
+  comments_count: number
+  points: number
+  read?: boolean
+}
+
+type NewsDetail = News & {
+  comments: NewsComment[]
+}
+
+type NewsComment = News & {
+  comments: NewsComment[]
+  level: number
+}
+
+const container: HTMLElement | null = document.getElementById("root")
+const content: HTMLDivElement = document.createElement("div")
+const ajax: XMLHttpRequest = new XMLHttpRequest()
 const NEWS_URL = "https://api.hnpwa.com/v0/news/1.json"
 const CONTENT_URL = "https://api.hnpwa.com/v0/item/@id.json"
-const container = document.getElementById("root")
-const content = document.createElement("div")
 
-const store = {
+const store: Store = {
   currentPage: 1,
   feeds: [],
 }
 
-function getData(url: string) {
+function getData<AjaxResponse>(url: string): AjaxResponse {
   ajax.open("GET", url, false)
   ajax.send()
 
   return JSON.parse(ajax.response)
 }
 
-function makeFeeds(feeds) {
+function makeFeeds(feeds: NewsFeed[]): void {
   for (let i = 0; i < feeds.length; i += 1) feeds[i].read = false
-
   store.feeds = feeds
-  store.maxLength = feeds.length
 }
 
-function newsFeed() {
-  if (store.feeds.length === 0) makeFeeds(getData(NEWS_URL))
+function updateView(html: string): void {
+  if (container) container.innerHTML = html
+  else console.error("root container is null!")
+}
+
+function newsFeed(): void {
+  if (store.feeds.length === 0) makeFeeds(getData<NewsFeed[]>(NEWS_URL))
 
   let template = `
   <div class="bg-gray-600 min-h-screen">
@@ -85,19 +117,19 @@ function newsFeed() {
   template = template.replace("{{__news_feed__}}", newsList.join(""))
   template = template.replace(
     "{{__prev_page__}}",
-    store.currentPage > 1 ? store.currentPage - 1 : 1
+    store.currentPage > 1 ? String(store.currentPage - 1) : "1"
   )
   template = template.replace(
     "{{__next_page__}}",
     Math.ceil(store.feeds.length / 10) === store.currentPage
-      ? store.currentPage
-      : store.currentPage + 1
+      ? String(store.currentPage)
+      : String(store.currentPage + 1)
   )
 
-  container.innerHTML = template
+  updateView(template)
 }
 
-function checkRead(id) {
+function checkRead(id: number): void {
   for (let i = 0; i < store.feeds.length; i += 1) {
     if (store.feeds[i].id === id) {
       store.feeds[i].read = true
@@ -106,10 +138,34 @@ function checkRead(id) {
   }
 }
 
-function newsDetail() {
+function makeComment(comments: NewsComment[]): string {
+  const commentString = []
+
+  for (let i = 0; i < comments.length; i++) {
+    const comment: NewsComment = comments[i]
+
+    commentString.push(`
+      <div style="padding-left: ${comment.level * 40}px;" class="mt-4">
+        <div class="text-gray-400">
+          <i class="fa fa-sort-up mr-2"></i>
+          <strong>${comment.user}</strong> ${comment.time_ago}
+        </div>
+        <p class="text-gray-700">${comment.content}</p>
+      </div>      
+    `)
+
+    if (comment.comments.length > 0) {
+      commentString.push(makeComment(comment.comments))
+    }
+  }
+
+  return commentString.join("")
+}
+
+function newsDetail(): void {
   const id = location.hash.substring(7)
   checkRead(Number(id))
-  const newsContent = getData(CONTENT_URL.replace("@id", id))
+  const newsContent = getData<NewsDetail>(CONTENT_URL.replace("@id", id))
 
   let template = `
     <div class="bg-gray-600 min-h-screen pb-8">
@@ -140,35 +196,12 @@ function newsDetail() {
     </div>
   `
 
-  function makeComment(comments, deps = 0) {
-    const commentString = []
-
-    for (let i = 0; i < comments.length; i++) {
-      commentString.push(`
-        <div style="padding-left: ${deps * 40}px;" class="mt-4">
-          <div class="text-gray-400">
-            <i class="fa fa-sort-up mr-2"></i>
-            <strong>${comments[i].user}</strong> ${comments[i].time_ago}
-          </div>
-          <p class="text-gray-700">${comments[i].content}</p>
-        </div>      
-      `)
-
-      if (comments[i].comments.length > 0) {
-        commentString.push(makeComment(comments[i].comments, deps + 1))
-      }
-    }
-
-    return commentString.join("")
-  }
-
-  container.innerHTML = template.replace(
-    "{{__comments__}}",
-    makeComment(newsContent.comments)
+  updateView(
+    template.replace("{{__comments__}}", makeComment(newsContent.comments))
   )
 }
 
-function router() {
+function router(): void {
   const routePath = location.hash
 
   if (routePath === "") newsFeed()
