@@ -9,7 +9,7 @@ const store = {
   feeds: [],
 }
 
-function getData(url) {
+function getData(url: string) {
   ajax.open("GET", url, false)
   ajax.send()
 
