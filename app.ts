@@ -38,12 +38,47 @@ const store: Store = {
   feeds: [],
 }
 
-function getData<AjaxResponse>(url: string): AjaxResponse {
-  ajax.open("GET", url, false)
-  ajax.send()
+function applyApiMixins(targetClass: any, baseClasses: any[]): void {
+  baseClasses.forEach(baseClass => {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach(name => {
+      const descriptor = Object.getOwnPropertyDescriptor(
+        baseClass.prototype,
+        name
+      )
 
-  return JSON.parse(ajax.response)
+      if (descriptor)
+        Object.defineProperty(targetClass.prototype, name, descriptor)
+    })
+  })
 }
+
+class Api {
+  getRequest<AjaxResponse>(url: string): AjaxResponse {
+    const ajax = new XMLHttpRequest()
+    ajax.open("GET", url, false)
+    ajax.send()
+
+    return JSON.parse(ajax.response)
+  }
+}
+
+class NewsFeedApi {
+  getData(): NewsFeed[] {
+    return this.getRequest<NewsFeed[]>(NEWS_URL)
+  }
+}
+
+class NewsDetailApi {
+  getData(id: string): NewsDetail {
+    return this.getRequest<NewsDetail>(CONTENT_URL.replace("@id", id))
+  }
+}
+
+interface NewsFeedApi extends Api {}
+interface NewsDetailApi extends Api {}
+
+applyApiMixins(NewsFeedApi, [Api])
+applyApiMixins(NewsDetailApi, [Api])
 
 function makeFeeds(feeds: NewsFeed[]): void {
   for (let i = 0; i < feeds.length; i += 1) feeds[i].read = false
@@ -55,8 +90,18 @@ function updateView(html: string): void {
   else console.error("root container is null!")
 }
 
+function checkRead(id: number): void {
+  for (let i = 0; i < store.feeds.length; i += 1) {
+    if (store.feeds[i].id === id) {
+      store.feeds[i].read = true
+      break
+    }
+  }
+}
+
 function newsFeed(): void {
-  if (store.feeds.length === 0) makeFeeds(getData<NewsFeed[]>(NEWS_URL))
+  const api = new NewsFeedApi()
+  if (store.feeds.length === 0) makeFeeds(api.getData())
 
   let template = `
   <div class="bg-gray-600 min-h-screen">
@@ -129,15 +174,6 @@ function newsFeed(): void {
   updateView(template)
 }
 
-function checkRead(id: number): void {
-  for (let i = 0; i < store.feeds.length; i += 1) {
-    if (store.feeds[i].id === id) {
-      store.feeds[i].read = true
-      break
-    }
-  }
-}
-
 function makeComment(comments: NewsComment[]): string {
   const commentString = []
 
@@ -164,9 +200,10 @@ function makeComment(comments: NewsComment[]): string {
 
 function newsDetail(): void {
   const id = location.hash.substring(7)
-  checkRead(Number(id))
-  const newsContent = getData<NewsDetail>(CONTENT_URL.replace("@id", id))
+  const api = new NewsDetailApi()
+  const newsContent = api.getData(id)
 
+  checkRead(Number(id))
   let template = `
     <div class="bg-gray-600 min-h-screen pb-8">
       <div class="bg-white text-xl">
