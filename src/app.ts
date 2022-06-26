@@ -1,28 +1,29 @@
 import Router from "./base/router"
 import NewsDetailView from "./page/news-detail-view"
 import NewsFeedView from "./page/news-feed-view"
-import { Store } from "./types"
+import Store from "./store"
 
 // const content: HTMLDivElement = document.createElement("div")
 // const ajax: XMLHttpRequest = new XMLHttpRequest()
 
-const store: Store = {
-  currentPage: 1,
-  feeds: [],
-}
+// const store: Store = {
+//   currentPage: 1,
+//   feeds: [],
+// }
 
-declare global {
-  interface Window {
-    store: Store
-  }
-}
+// declare global {
+//   interface Window {
+//     store: Store
+//   }
+// }
 
-window.store = store
+// window.store = store
+const store = new Store()
 
 const router: Router = new Router()
 
-const newsFeedView = new NewsFeedView("root")
-const newsDetailView = new NewsDetailView("root")
+const newsFeedView = new NewsFeedView("root", store)
+const newsDetailView = new NewsDetailView("root", store)
 
 router.setDefaultPage(newsFeedView)
 

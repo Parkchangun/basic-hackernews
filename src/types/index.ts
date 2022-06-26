@@ -1,8 +1,15 @@
 import View from "../base/view"
 
-export type Store = {
+export interface NewsStore {
+  getAllFeeds: () => NewsFeed[]
+  getFeed: (position: number) => NewsFeed
+  setRead: (feeds: NewsFeed[]) => void
+  checkedRead: (id: number) => void
+  hasFeeds: boolean
   currentPage: number
-  feeds: NewsFeed[]
+  numberOfFeed: number
+  nextPage: number
+  prevPage: number
 }
 
 export type News = {

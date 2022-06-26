@@ -1,10 +1,8 @@
 import { NewsDetailApi } from "../base/api"
 import View from "../base/view"
-import { NewsComment } from "../types"
+import { NewsComment, NewsStore } from "../types"
 
-export default class NewsDetailView extends View {
-  constructor(containerId: string) {
-    let template = `
+const template = `
     <div class="bg-gray-600 min-h-screen pb-8">
       <div class="bg-white text-xl">
         <div class="mx-auto px-4">
@@ -32,16 +30,13 @@ export default class NewsDetailView extends View {
       </div>
     </div>
   `
-    super(containerId, template)
-  }
 
-  private checkRead(id: number): void {
-    for (let i = 0; i < window.store.feeds.length; i += 1) {
-      if (window.store.feeds[i].id === id) {
-        window.store.feeds[i].read = true
-        break
-      }
-    }
+export default class NewsDetailView extends View {
+  private store: NewsStore
+
+  constructor(containerId: string, store: NewsStore) {
+    super(containerId, template)
+    this.store = store
   }
 
   private makeComment(comments: NewsComment[]): string {
@@ -71,12 +66,11 @@ export default class NewsDetailView extends View {
     const api = new NewsDetailApi()
     const newsDetail = api.getData(id)
 
-    this.checkRead(Number(id))
+    this.store.checkedRead(Number(id))
 
-    this.setTemplateData("current_page", String(window.store.currentPage))
+    this.setTemplateData("current_page", String(this.store.currentPage))
     this.setTemplateData("title", newsDetail.title)
     this.setTemplateData("content", newsDetail.content)
-    console.log(newsDetail)
     this.setTemplateData("comments", this.makeComment(newsDetail.comments))
 
     this.updateView()
