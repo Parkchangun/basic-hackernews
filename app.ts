@@ -85,10 +85,10 @@ class NewsDetailApi extends Api {
 // applyApiMixins(NewsDetailApi, [Api])
 
 abstract class View {
-  template: string
-  renderTemplate: string
-  container: HTMLElement
-  htmlList: string[]
+  private template: string
+  private renderTemplate: string
+  private container: HTMLElement
+  private htmlList: string[]
 
   constructor(containerId: string, template: string) {
     const containerEl = document.getElementById(containerId)
@@ -103,26 +103,26 @@ abstract class View {
     this.htmlList = []
   }
 
-  updateView(): void {
+  protected updateView(): void {
     this.container.innerHTML = this.renderTemplate
     this.renderTemplate = this.template
   }
 
-  addHtml(htmlString: string): void {
+  protected addHtml(htmlString: string): void {
     this.htmlList.push(htmlString)
   }
 
-  getHtml(): string {
+  protected getHtml(): string {
     const snapshot = this.htmlList.join("")
     this.clearHtmlList()
     return snapshot
   }
 
-  clearHtmlList(): void {
+  private clearHtmlList(): void {
     this.htmlList = []
   }
 
-  setTemplateData(key: string, value: string): void {
+  protected setTemplateData(key: string, value: string): void {
     this.renderTemplate = this.renderTemplate.replace(`{{__${key}__}}`, value)
   }
 
@@ -130,8 +130,8 @@ abstract class View {
 }
 
 class Router {
-  defaultRoute: RouteInfo | null
-  routeTable: RouteInfo[]
+  private defaultRoute: RouteInfo | null
+  private routeTable: RouteInfo[]
 
   constructor() {
     window.addEventListener("hashchange", this.route.bind(this))
@@ -164,9 +164,6 @@ class Router {
 }
 
 class NewsFeedView extends View {
-  api: NewsFeedApi
-  feeds: NewsFeed[]
-
   constructor(containerId: string) {
     let template = `
     <div class="bg-gray-600 min-h-screen">
@@ -193,20 +190,20 @@ class NewsFeedView extends View {
   </div>
 `
     super(containerId, template)
-    this.api = new NewsFeedApi()
-    this.feeds = store.feeds
-
-    if (this.feeds.length === 0) {
-      this.feeds = store.feeds = this.api.getData()
-      this.makeFeeds()
-    }
   }
 
-  makeFeeds(): void {
-    for (let i = 0; i < this.feeds.length; i += 1) this.feeds[i].read = false
+  private initRead(): void {
+    for (let i = 0; i < store.feeds.length; i += 1) store.feeds[i].read = false
   }
 
   render(): void {
+    const api = new NewsFeedApi()
+
+    if (store.feeds.length === 0) {
+      store.feeds = api.getData()
+      this.initRead()
+    }
+
     store.currentPage = Number(location.hash.substring(7) || 1)
     for (
       let i = (store.currentPage - 1) * 10;
@@ -214,7 +211,7 @@ class NewsFeedView extends View {
       i += 1
     ) {
       const { read, id, title, comments_count, user, points, time_ago } =
-        this.feeds[i]
+        store.feeds[i]
       this.addHtml(`
     <div class="p-6 ${
       read ? "bg-red-500" : "bg-white"
@@ -275,7 +272,7 @@ class NewsDetailView extends View {
 
       <div class="h-full border rounded-xl bg-white m-6 p-4 ">
         <h2>{{__title__}}</h2>
-        <div class="text-gray-400 h-20">
+        <div class="text-gray-400 min-h-20">
           {{__content__}}
         </div>
 
@@ -287,7 +284,7 @@ class NewsDetailView extends View {
     super(containerId, template)
   }
 
-  checkRead(id: number): void {
+  private checkRead(id: number): void {
     for (let i = 0; i < store.feeds.length; i += 1) {
       if (store.feeds[i].id === id) {
         store.feeds[i].read = true
@@ -296,7 +293,7 @@ class NewsDetailView extends View {
     }
   }
 
-  makeComment(comments: NewsComment[]): string {
+  private makeComment(comments: NewsComment[]): string {
     for (let i = 0; i < comments.length; i++) {
       const comment: NewsComment = comments[i]
 
@@ -328,6 +325,7 @@ class NewsDetailView extends View {
     this.setTemplateData("current_page", String(store.currentPage))
     this.setTemplateData("title", newsDetail.title)
     this.setTemplateData("content", newsDetail.content)
+    console.log(newsDetail)
     this.setTemplateData("comments", this.makeComment(newsDetail.comments))
 
     this.updateView()
