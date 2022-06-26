@@ -1,6 +1,5 @@
 import Router from "./base/router"
-import NewsDetailView from "./page/news-detail-view"
-import NewsFeedView from "./page/news-feed-view"
+import { NewsDetailView, NewsFeedView } from "./page"
 import Store from "./store"
 
 // const content: HTMLDivElement = document.createElement("div")
