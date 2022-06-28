@@ -22,25 +22,30 @@ export class Api {
     this.url = url
   }
 
-  protected getRequestWithXHR<AjaxResponse>(
-    cb: (data: AjaxResponse) => void
-  ): void {
-    this.xhr.open("GET", this.url)
-    this.xhr.addEventListener("load", () => {
-      // Request finished. Do processing here.
-      cb(JSON.parse(this.xhr.response) as AjaxResponse)
-    })
+  // protected getRequestWithXHR<AjaxResponse>(
+  //   cb: (data: AjaxResponse) => void
+  // ): void {
+  //   this.xhr.open("GET", this.url)
+  //   this.xhr.addEventListener("load", () => {
+  //     // Request finished. Do processing here.
+  //     cb(JSON.parse(this.xhr.response) as AjaxResponse)
+  //   })
 
-    this.xhr.send()
-  }
+  //   this.xhr.send()
+  // }
 
-  protected getRequestWithPromise<AjaxResponse>(
-    cb: (data: AjaxResponse) => void
-  ): void {
-    fetch(this.url)
-      .then(response => response.json())
-      .then(cb)
-      .catch(error => alert(error))
+  // protected getRequestWithPromise<AjaxResponse>(
+  //   cb: (data: AjaxResponse) => void
+  // ): void {
+  //   fetch(this.url)
+  //     .then(response => response.json())
+  //     .then(cb)
+  //     .catch(error => alert(error))
+  // }
+
+  protected async request<AjaxResponse>(): Promise<AjaxResponse> {
+    const response = await fetch(this.url)
+    return (await response.json()) as AjaxResponse
   }
 }
 
@@ -49,12 +54,16 @@ export class NewsFeedApi extends Api {
     super(url)
   }
 
-  getDataWithXHR(cb: (data: NewsFeed[]) => void): void {
-    return this.getRequestWithXHR<NewsFeed[]>(cb)
-  }
+  // getDataWithXHR(cb: (data: NewsFeed[]) => void): void {
+  //   return this.getRequestWithXHR<NewsFeed[]>(cb)
+  // }
 
-  getDataWithPromise(cb: (data: NewsFeed[]) => void): void {
-    return this.getRequestWithPromise<NewsFeed[]>(cb)
+  // getDataWithPromise(cb: (data: NewsFeed[]) => void): void {
+  //   return this.getRequestWithPromise<NewsFeed[]>(cb)
+  // }
+
+  getData = async (): Promise<NewsFeed[]> => {
+    return this.request<NewsFeed[]>()
   }
 }
 
@@ -63,12 +72,15 @@ export class NewsDetailApi extends Api {
     super(url)
   }
 
-  getDataWithXHR(cb: (data: NewsDetail) => void): void {
-    return this.getRequestWithXHR<NewsDetail>(cb)
-  }
+  // getDataWithXHR(cb: (data: NewsDetail) => void): void {
+  //   return this.getRequestWithXHR<NewsDetail>(cb)
+  // }
 
-  getDataWithPromise(cb: (data: NewsDetail) => void): void {
-    return this.getRequestWithPromise<NewsDetail>(cb)
+  // getDataWithPromise(cb: (data: NewsDetail) => void): void {
+  //   return this.getRequestWithPromise<NewsDetail>(cb)
+  // }
+  getData = async (): Promise<NewsDetail> => {
+    return this.request<NewsDetail>()
   }
 }
 
