@@ -2,7 +2,6 @@ import { NewsFeedApi } from "../base/api"
 import View from "../base/view"
 import { NewsStore } from "../types"
 import { NEWS_URL } from "../config"
-import { NewsFeed } from "../types/index"
 
 const template = `
 <div class="bg-gray-600 min-h-screen">

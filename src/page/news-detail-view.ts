@@ -2,7 +2,6 @@ import { NewsDetailApi } from "../base/api"
 import View from "../base/view"
 import { CONTENT_URL } from "../config"
 import { NewsComment, NewsStore } from "../types"
-import { NewsDetail } from "../types/index"
 
 const template = `
     <div class="bg-gray-600 min-h-screen pb-8">

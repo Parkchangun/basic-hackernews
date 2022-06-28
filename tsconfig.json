@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "strict": true,
+    "target": "ES6",
     "module": "CommonJS",
-    "lib": ["ES6", "DOM"],
     "alwaysStrict": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
